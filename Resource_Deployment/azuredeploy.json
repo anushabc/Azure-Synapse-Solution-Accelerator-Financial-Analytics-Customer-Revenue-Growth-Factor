@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     
     "parameters": {
-        "UniquePrefixName": {
+        "DeploymentID": {
             "type": "string",
             "minLength": 3,
             "maxLength": 5,
@@ -28,7 +28,7 @@
         "rgName": "[resourceGroup().name]",
 
         "tenantId": "[subscription().tenantId]",
-        "paramName": "[parameters('UniquePrefixName')]",
+        "paramName": "[parameters('DeploymentID')]",
         "storageContainer": "source",
         
         
