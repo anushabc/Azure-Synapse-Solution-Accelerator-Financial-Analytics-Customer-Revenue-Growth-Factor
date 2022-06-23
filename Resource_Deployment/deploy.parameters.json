@@ -15,10 +15,10 @@
         "value": "GET-AZUSER-PASSWORD"
       },
       "trainerUserName": {
-        "type": "string"
+        "value": "trainer"
       },
       "trainerUserPassword": {
-        "type": "string"
+        "value": "Password.1"
       },
       "ODLID": {
         "value": "GET-ODL-ID"
