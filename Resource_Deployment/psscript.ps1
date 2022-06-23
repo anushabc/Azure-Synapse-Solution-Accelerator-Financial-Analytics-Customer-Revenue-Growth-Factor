@@ -55,7 +55,7 @@ Add-Content -Path "C:\LabFiles\AzureCreds.txt" -Value "ODLID= $ODLID" -PassThru
 
 $LabFilesDirectory = "C:\LabFiles"
 
-.C:\LabFiles\AzureCreds.ps1
+.C:\LabFiles\AzureCreds.txt
 
 $userName = $AzureUserName
 $password = $AzurePassword
