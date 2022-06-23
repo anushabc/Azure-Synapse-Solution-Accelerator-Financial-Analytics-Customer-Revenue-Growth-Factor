@@ -19,7 +19,16 @@ Param (
     $DeploymentID,
 
     [string]
-    $InstallCloudLabsShadow
+    $InstallCloudLabsShadow,
+    
+    [string]
+    $vmAdminUsername,
+
+    [string]
+    $trainerUserName,
+
+    [string]
+    $trainerUserPassword
 )
 
 Start-Transcript -Path C:\WindowsAzure\Logs\CloudLabsCustomScriptExtension.txt -Append
