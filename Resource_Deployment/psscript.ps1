@@ -74,6 +74,13 @@ $deploymentId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["Deployment
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
   -TemplateUri "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Resource_Deployment/azuredeploy.json" `
   -DeploymentId $deploymentId
+  
+$storageAccounts = Get-AzResource -ResourceGroupName $resourceGroupName -ResourceType "Microsoft.Storage/storageAccounts"
+$asadatalakename = $storageAccounts | Where-Object { $_.Name -Notlike 'ml*' }
+$storagedatalake =$asadatalakename.Name
+
+New-AzRoleAssignment -SignInName $userName -RoleDefinitionName "Storage Blob Data Contributor" -Scope "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$storagedatalake"
+$id = "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$storagedatalake"
 
 #Download power Bi desktop
 $WebClient = New-Object System.Net.WebClient
