@@ -95,7 +95,8 @@
             "createOption": "fromImage",
             "managedDisk": {
               "storageAccountType": "Standard_LRS"
-            }
+            },
+            "diskSizeGB": 256
           },
           "dataDisks": [
 
