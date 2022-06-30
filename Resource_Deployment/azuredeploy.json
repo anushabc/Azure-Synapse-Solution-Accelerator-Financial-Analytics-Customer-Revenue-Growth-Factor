@@ -33,7 +33,7 @@
         "nodeIdleTimeBeforeScaleDown": "PT120S",
         "remoteLoginPortPublicAccess": "NotSpecified",
         "vmSize": "Standard_DS3_v2",
-        "vmPriority": "Dedicated"
+        "vmPriority": "Dedicated",
 
         "tenantId": "[subscription().tenantId]",
         "paramName": "[parameters('DeploymentID')]",
@@ -314,7 +314,7 @@
     "StorageAccountSubscriptionId": "[variables('storageAccountSubscriptionId')]",
     "StorageAccountResourceGroup": "[variables('storageAccountResourceGroup')]"
   }
-}
+},
         {
             "scope": "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
             "type": "Microsoft.Authorization/roleAssignments",
