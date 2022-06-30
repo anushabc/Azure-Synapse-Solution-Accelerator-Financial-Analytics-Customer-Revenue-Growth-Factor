@@ -54,8 +54,12 @@
         "containerName": "azureaml",
         "storageAccountSubscriptionId": "[subscription().subscriptionId]",
         "storageAccountResourceGroup": "[resourceGroup().name]",
-        "skipValidation": "true",
-        "authenticationType": "Account Key"
+        "skipValidation": "false",
+        "authenticationType": "Account Key",
+	 "tags": "{}",
+	"relativePath": "transformed_data/ml_data_parquet/**",
+	"datasetDescription": "",
+	"datasetName": "mldataset"
     },
 
     "resources": [
@@ -318,6 +322,33 @@
 				"AccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageMLname')), '2019-06-01').keys[0].value]"
 			}
 		},
+	    
+	{
+  "type": "Microsoft.MachineLearningServices/workspaces/datasets",
+  "name": "[concat(variables('machinelearningName'), '/', variables('datasetName'))]",
+  "apiVersion": "2020-05-01-preview",
+  "location": "[variables('location')]",
+   "dependsOn": [
+		"[resourceId('Microsoft.MachineLearningServices/workspaces', variables('machinelearningName'))]"
+				
+			],
+  "properties": {
+    "SkipValidation": "[variables('skipValidation')]",
+    "DatasetType": "file",
+    "variables": {
+      "Path": {
+        "DataPath": {
+          "RelativePath": "[variables('relativePath')]",
+          "DatastoreName": "[variables('datastoreName')]"
+        }
+      }
+    },
+    "Registration": {
+      "Description": "[variables('datasetDescription')]",
+      "Tags": "[variables('tags')]"
+    }
+  }
+}
         {
             "scope": "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
             "type": "Microsoft.Authorization/roleAssignments",
