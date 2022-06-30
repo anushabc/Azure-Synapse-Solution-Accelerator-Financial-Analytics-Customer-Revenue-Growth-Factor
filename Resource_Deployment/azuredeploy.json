@@ -26,6 +26,14 @@
         "location": "[resourceGroup().location]",
         "rgId": "[resourceGroup().id]",
         "rgName": "[resourceGroup().name]",
+        "computeInstanceName": "manymodel-compute",
+        "disableLocalAuth": "false",
+        "maxNodeCount": "1",
+        "minNodeCount": "0",
+        "nodeIdleTimeBeforeScaleDown": "PT120S",
+        "remoteLoginPortPublicAccess": "NotSpecified",
+        "vmSize": "Standard_DS3_v2",
+        "vmPriority": "Dedicated"
 
         "tenantId": "[subscription().tenantId]",
         "paramName": "[parameters('DeploymentID')]",
@@ -263,6 +271,26 @@
                 "allowPublicAccessWhenBehindVnet": false
             }
         },
+      {
+      "type": "Microsoft.MachineLearningServices/workspaces/computes",
+      "apiVersion": "2020-04-01",
+      "name": "[concat(variables('workspaceName'), '/', variables('computeInstanceName'))]",
+      "location": "[variables('location')]",
+      "properties": {
+        "computeType": "AmlCompute",
+        "disableLocalAuth": "[variables('disableLocalAuth')]",
+        "properties": {
+          "remoteLoginPortPublicAccess": "[variables('remoteLoginPortPublicAccess')]",
+          "scaleSettings": {
+            "maxNodeCount": "[variables('maxNodeCount')]",
+            "minNodeCount": "[variables('minNodeCount')]",
+            "nodeIdleTimeBeforeScaleDown": "[variables('nodeIdleTimeBeforeScaleDown')]"
+          },
+          "vmPriority": "[variables('vmPriority')]",
+          "vmSize": "[variables('vmSize')]"
+        }
+      }
+    },
         {
             "scope": "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
             "type": "Microsoft.Authorization/roleAssignments",
