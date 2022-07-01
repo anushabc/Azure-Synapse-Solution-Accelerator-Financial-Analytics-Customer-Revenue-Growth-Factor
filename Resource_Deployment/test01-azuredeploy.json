@@ -330,7 +330,7 @@
   "location": "[variables('location')]",
    "dependsOn": [
 		"[resourceId('Microsoft.MachineLearningServices/workspaces', variables('machinelearningName'))]",
-		"[resourceId('Microsoft.MachineLearningServices/workspaces/datastores', variables('datastoreName'))]"		
+		"[resourceId('Microsoft.MachineLearningServices/workspaces/datastores', variables('machinelearningName'), variables('datastoreName'))]"		
 			],
   "properties": {
     "SkipValidation": "[variables('skipValidation')]",
