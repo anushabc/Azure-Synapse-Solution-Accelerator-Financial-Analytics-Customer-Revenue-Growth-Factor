@@ -72,7 +72,7 @@ $deploymentId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["Deployment
 
 
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
-  -TemplateUri "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Resource_Deployment/test01-deploy-01.json" `
+  -TemplateUri "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Resource_Deployment/test01-azuredeploy.json" `
   -DeploymentId $deploymentId
   
 $storageAccounts = Get-AzResource -ResourceGroupName $resourceGroupName -ResourceType "Microsoft.Storage/storageAccounts"
