@@ -51,7 +51,7 @@
 
         "StorageBlobDataContributor": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
         "datastoreName": "mldatastore",
-        "containerName": "azureaml",
+        "containerName": "source",
         "storageAccountSubscriptionId": "[subscription().subscriptionId]",
         "storageAccountResourceGroup": "[resourceGroup().name]",
         "skipValidation": "false",
@@ -313,13 +313,13 @@
 			"location":  "[variables('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.MachineLearningServices/workspaces', variables('machinelearningName'))]",
-				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageMLname'))]"
+				"[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
 			],
 			"properties": {
 				"DataStoreType": "blob",
-				"AccountName": "[variables('storageMLname')]",
+				"AccountName": "[variables('storageName')]",
 				"ContainerName": "[variables('containerName')]",
-				"AccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageMLname')), '2019-06-01').keys[0].value]"
+				"AccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value]"
 			}
 		},
 	    
@@ -329,12 +329,12 @@
   "apiVersion": "2020-05-01-preview",
   "location": "[variables('location')]",
    "dependsOn": [
-		"[resourceId('Microsoft.MachineLearningServices/workspaces', variables('machinelearningName'))]"
-				
+		"[resourceId('Microsoft.MachineLearningServices/workspaces', variables('machinelearningName'))]",
+		"[resourceId('Microsoft.MachineLearningServices/workspaces/datastores', variables('datastoreName'))]"		
 			],
   "properties": {
     "SkipValidation": "[variables('skipValidation')]",
-    "DatasetType": "file",
+    "DatasetType": "Tabular",
     "variables": {
       "Path": {
         "DataPath": {
