@@ -59,6 +59,7 @@ $LabFilesDirectory = "C:\LabFiles"
 
 $userName = $AzureUserName
 $password = $AzurePassword
+$SubscriptionId = $AzureSubscriptionID
 
 $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
