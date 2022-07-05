@@ -36,9 +36,10 @@ if($IsCloudLabs){
         $global:ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
         $global:ropcBodyPowerBI = "$($ropcBodyCore)&scope=https://analysis.windows.net/powerbi/api/.default"
 
-        $artifactsPath = "..\..\"
+          $artifactsPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts"
+
         $reportsPath = "..\reports"
-        $templatesPath = "..\templates"
+        $templatesPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\templates"
         $datasetsPath = "..\datasets"
         $dataflowsPath = "..\dataflows"
         $pipelinesPath = "..\pipelines"
@@ -70,7 +71,7 @@ if($IsCloudLabs){
         #$global:sqlPassword = Read-Host -Prompt "Enter the SQL Administrator password you used in the deployment" -AsSecureString
         #$global:sqlPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($sqlPassword))
 
-        $artifactsPath = "..\..\"
+        $artifactsPath = "..\.."
         $reportsPath = "..\reports"
         $templatesPath = "..\templates"
         $datasetsPath = "..\datasets"
@@ -79,7 +80,6 @@ if($IsCloudLabs){
         $sqlScriptsPath = "..\sql"
 }
 
-cd C:/
 
 Write-Information "Using $resourceGroupName";
 
@@ -141,7 +141,7 @@ foreach ($notebookName in $notebooks.Keys) {
         $notebookFileName = "$($notebooks[$notebookName])\$($notebookName).ipynb"
         Write-Information "Creating notebook $($notebookName) from $($notebookFileName)"
         $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $SubscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $notebookSparkPools[$notebookName] -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams -PersistPayload $false
+                -WorkspaceName $workspaceName -SparkPoolName $notebookSparkPools[$notebookName] -Name $notebookName -NotebookFileName $notebookFileName -PersistPayload $false
         Write-Information "Create notebook initiated..."
         $operationResult = Wait-ForSparkNotebookOperation -WorkspaceName $workspaceName -OperationId $result.operationId
         $operationResult
@@ -155,7 +155,7 @@ $fileName = "pipeline1"
 
 Write-Information "Creating pipeline $($loadingPipelineName)"
 
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName 
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName 
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Running pipeline $($loadingPipelineName)"
@@ -170,7 +170,7 @@ $PipelineName = "Daily Orchestration"
 
 Write-Information "Creating pipeline $($PipelineName)"
 
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $PipelineName -FileName $PipelineName 
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $PipelineName -FileName $PipelineName 
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Running pipeline $($PipelineName)"
@@ -182,4 +182,3 @@ $result
 Set-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger" -DefinitionFile "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\MyTrigger.json"
 Get-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger"
 Start-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger"
-
