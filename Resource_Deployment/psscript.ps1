@@ -55,7 +55,7 @@ Add-Content -Path "C:\LabFiles\AzureCreds.txt" -Value "ODLID= $ODLID" -PassThru
 
 $LabFilesDirectory = "C:\LabFiles"
 
-.C:\LabFiles\AzureCreds.ps1
+. C:\LabFiles\AzureCreds.ps1
 
 $userName = $AzureUserName
 $password = $AzurePassword
@@ -85,18 +85,32 @@ $storageContext = $storage.Context
 
 $storContainer = Get-AzStorageContainer -Name "source" -Context $storageContext
 $storageContainer = $storContainer.Name
-$Context = $storageContainer.Context
 
-New-AzStorageDirectory -ShareName "raw_data" -Path $storContainer
+$filesystemName = "source"
+$dirname = "raw_data/"
+New-AzDataLakeGen2Item -Context $storageContext -FileSystem $filesystemName -Path $dirname -Directory
 
-$uploadstorage = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $asadatalakename.Name
-$storcontext = $uploadstorage.Context
+$storage = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $asadatalakename.Name
+$storageContext = $storage.Context
 
-Get-ChildItem -File -Recurse | Set-AzStorageBlobContent -Container "source" -Context $storcontext
+
+$destContext = $storage.Context
+$startTime = Get-Date
+$endTime = $startTime.AddDays(2)
+$destSASToken = New-AzStorageAccountSASToken -Context $storageContext -Service Blob -ResourceType Object -Permission rwdlac -StartTime $startTime -ExpiryTime $endTime
+$destUrl = $destContext.BlobEndPoint + "source/" + "raw_data" + $destSASToken
+$srcUrl = "C:\Users\demouser\Downloads\Datasets\*"
+
+$srcUrl 
+$destUrl
+
+C:\LabFiles\azcopy.exe copy $srcUrl $destUrl 
+
 
 New-AzRoleAssignment -SignInName $userName -RoleDefinitionName "Storage Blob Data Contributor" -Scope "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$storagedatalake"
 $id = "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$storagedatalake"
 
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Install-Module -Name Az.Synapse -RequiredVersion 0.3.0 -Force
 
 $workspaceName = $synapseWorkspace | Where-Object { $_.workspacename -like 'synapse-workspace*' }
@@ -108,35 +122,46 @@ $workspaceName =$synapseWorkspace.Name
 
 New-AzSynapseFirewallRule -WorkspaceName $workspaceName -Name NewClientIp -StartIpAddress "0.0.0.0" -EndIpAddress "255.255.255.255"
 
-cd "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\automation\"
+cd C:/Users/demouser
+git clone https://github.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor
+
+cd C:/
+mkdir synapse-ws-L400
+cd C:\synapse-ws-L400
+git clone https://github.com/solliancenet/azure-synapse-analytics-workshop-400
+
+Copy-Item "C:\Users\demouser\Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor\Analytics_Deployment\synapse-workspace\cluster_config\requirements.txt" -Destination "C:\syapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\automation"
+
+
+cd "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\automation\"
 $sparkpoolName = "spark1"
-Update-AzSynapseSparkPool -WorkspaceName $WorkspaceName -Name $sparkpoolName -LibraryRequirementsFilePath "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\automation\requirements.txt" #path
+Update-AzSynapseSparkPool -WorkspaceName $WorkspaceName -Name $sparkpoolName -LibraryRequirementsFilePath "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\automation\requirements.txt" #path
 
 cd C:/
 
 function InstallGit()
 {
-  Write-Host "Installing Git." -ForegroundColor Green -Verbose
+  Write-Host "Installing Git." -ForegroundColor Green -Verbose
 
-  #download and install git...        
-  $output = "$env:TEMP\git.exe";
-  Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
+  #download and install git...        
+  $output = "$env:TEMP\git.exe";
+  Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
 
-  $productPath = "$env:TEMP";
-  $productExec = "git.exe"    
-  $argList = "/SILENT"
-  start-process "$productPath\$productExec" -ArgumentList $argList -wait
+  $productPath = "$env:TEMP";
+  $productExec = "git.exe"    
+  $argList = "/SILENT"
+  start-process "$productPath\$productExec" -ArgumentList $argList -wait
 
 }
 
 function InstallAzureCli()
 {
-  Write-Host "Installing Azure CLI." -ForegroundColor Green -Verbose
+  Write-Host "Installing Azure CLI." -ForegroundColor Green -Verbose
 
-  #install azure cli
-  Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi -usebasicparsing; 
-  Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
-  rm .\AzureCLI.msi
+  #install azure cli
+  Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi -usebasicparsing; 
+  Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
+  rm .\AzureCLI.msi
 }
 
 InstallGit
@@ -144,41 +169,42 @@ InstallAzureCli
 
 function CreateCredFile($azureUsername, $azurePassword, $azureTenantID, $azureSubscriptionID, $deploymentId)
 {
-  $WebClient = New-Object System.Net.WebClient
-  $WebClient.DownloadFile("https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/spektra/AzureCreds.txt","C:\LabFiles\AzureCreds.txt")
-  $WebClient.DownloadFile("https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/spektra/AzureCreds.ps1","C:\LabFiles\AzureCreds.ps1")
+  $WebClient = New-Object System.Net.WebClient
+  $WebClient.DownloadFile("https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/spektra/AzureCreds.txt","C:\LabFiles\AzureCreds.txt")
+  $WebClient.DownloadFile("https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/spektra/AzureCreds.ps1","C:\LabFiles\AzureCreds.ps1")
 
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "ClientIdValue", ""} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureUserNameValue", "$azureUsername"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzurePasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureSQLPasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureTenantIDValue", "$azureTenantID"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureSubscriptionIDValue", "$azureSubscriptionID"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "DeploymentIDValue", "$deploymentId"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"               
-  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "ODLIDValue", "$odlId"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"  
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "ClientIdValue", ""} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureUserNameValue", "$azureUsername"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzurePasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureSQLPasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureTenantIDValue", "$azureTenantID"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureSubscriptionIDValue", "$azureSubscriptionID"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "DeploymentIDValue", "$deploymentId"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "ODLIDValue", "$odlId"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
-  Copy-Item "C:\LabFiles\AzureCreds.txt" -Destination "C:\Users\Public\Desktop"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "ClientIdValue", ""} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureUserNameValue", "$azureUsername"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzurePasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureSQLPasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureTenantIDValue", "$azureTenantID"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "AzureSubscriptionIDValue", "$azureSubscriptionID"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.txt") | ForEach-Object {$_ -Replace "DeploymentIDValue", "$deploymentId"} | Set-Content -Path "C:\LabFiles\AzureCreds.txt"               
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "ClientIdValue", ""} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureUserNameValue", "$azureUsername"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzurePasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureSQLPasswordValue", "$azurePassword"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureTenantIDValue", "$azureTenantID"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "AzureSubscriptionIDValue", "$azureSubscriptionID"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  (Get-Content -Path "C:\LabFiles\AzureCreds.ps1") | ForEach-Object {$_ -Replace "DeploymentIDValue", "$deploymentId"} | Set-Content -Path "C:\LabFiles\AzureCreds.ps1"
+  Copy-Item "C:\LabFiles\AzureCreds.txt" -Destination "C:\Users\Public\Desktop"
 }
 
 CreateCredFile
 
+Copy-Item "C:\Users\demouser\Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor\Analytics_Deployment\synapse-workspace\notebooks\*" -Destination "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning"
 
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name ='source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "full_dataset = ''", "full_dataset = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb"
-(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb"
+
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\1 - Clean Data.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name ='source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb") | ForEach-Object {$_ -Replace "full_dataset = ''", "full_dataset = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\2 - Data Engineering.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\3 - Feature Engineering.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb") | ForEach-Object {$_ -Replace "data_lake_account_name = ''", "data_lake_account_name = '$storagedatalake'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb"
+(Get-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb") | ForEach-Object {$_ -Replace "file_system_name = ''", "file_system_name = 'source'"} | Set-Content -Path "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\day-03\lab-06-machine-learning\4 - ML Model Building.ipynb"
+
 
 #Download power Bi desktop
 $WebClient = New-Object System.Net.WebClient
