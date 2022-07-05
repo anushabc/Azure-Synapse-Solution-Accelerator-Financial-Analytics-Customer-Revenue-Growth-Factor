@@ -1,4 +1,4 @@
-cd './synapse-ws-L400/azure-synapse-analytics-workshop-400-master/artifacts/environment-setup/automation'
+cd './synapse-ws-L400/azure-synapse-analytics-workshop-400/artifacts/environment-setup/automation'
 
 
 $InformationPreference = "Continue"
@@ -9,7 +9,7 @@ if($IsCloudLabs){
         if(Get-Module -Name solliance-synapse-automation){
                 Remove-Module solliance-synapse-automation
         }
-        Import-Module "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\solliance-synapse-automation"
+        Import-Module "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\solliance-synapse-automation"
 
         . C:\LabFiles\AzureCreds.ps1
 
@@ -36,13 +36,13 @@ if($IsCloudLabs){
         $global:ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
         $global:ropcBodyPowerBI = "$($ropcBodyCore)&scope=https://analysis.windows.net/powerbi/api/.default"
 
-          $artifactsPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts"
+          $artifactsPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts"
 
         $reportsPath = "..\reports"
-        $templatesPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\templates"
+        $templatesPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\templates"
         $datasetsPath = "..\datasets"
         $dataflowsPath = "..\dataflows"
-        $pipelinesPath = "..\pipelines"
+        $pipelinesPath = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\pipelines"
         $sqlScriptsPath = "..\sql"
 } else {
         if(Get-Module -Name solliance-synapse-automation){
@@ -148,6 +148,15 @@ foreach ($notebookName in $notebooks.Keys) {
 
 }
 
+$url1 = "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Resource_Deployment/pipeline1.json"
+$url2 = "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Analytics_Deployment/synapse-workspace/pipelines/Daily%20Orchestration.json"
+$dest1 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\pipeline1.json"
+$dest2 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\Daily Orchestration.json"
+
+Invoke-WebRequest -Uri $url1 -OutFile $dest1
+Invoke-WebRequest -Uri $url2 -OutFile $dest2
+
+
 Write-Information "Create pipeline to load the SQL pool"
 
 $loadingPipelineName = "Pipeline 1"
@@ -179,6 +188,6 @@ $result = Run-Pipeline -WorkspaceName $workspaceName -Name $PipelineName
 $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
 $result
 
-Set-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger" -DefinitionFile "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\MyTrigger.json"
+Set-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger" -DefinitionFile "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\pipelines\MyTrigger.json"
 Get-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger"
 Start-AzSynapseTrigger -WorkspaceName $workspaceName -Name "MyTrigger"
