@@ -150,8 +150,8 @@ foreach ($notebookName in $notebooks.Keys) {
 
 $url1 = "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Resource_Deployment/pipeline1.json"
 $url2 = "https://raw.githubusercontent.com/Sanket-ST/Azure-Synapse-Solution-Accelerator-Financial-Analytics-Customer-Revenue-Growth-Factor/main/Analytics_Deployment/synapse-workspace/pipelines/Daily%20Orchestration.json"
-$dest1 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\pipeline1.json"
-$dest2 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400-master\artifacts\environment-setup\pipelines\Daily Orchestration.json"
+$dest1 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\pipelines\pipeline1.json"
+$dest2 = "C:\synapse-ws-L400\azure-synapse-analytics-workshop-400\artifacts\environment-setup\pipelines\Daily Orchestration.json"
 
 Invoke-WebRequest -Uri $url1 -OutFile $dest1
 Invoke-WebRequest -Uri $url2 -OutFile $dest2
