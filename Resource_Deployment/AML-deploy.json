@@ -12,6 +12,11 @@
         },
     },
     "variables": {
+	"subscriptionId": "[subscription().subscriptionId]",
+        "location": "[resourceGroup().location]",
+        "rgId": "[resourceGroup().id]",
+        "rgName": "[resourceGroup().name]",
+    
         "storageMLname": "[replace(replace(toLower(concat( variables('machinelearningName'), variables('uniqueName') )),'-',''),'_','')]",
         "keyvaultname": "[concat('kv', variables('uniqueName'))]",
         "appinsightsname": "[concat(variables('machinelearningName'), 'ai')]",
@@ -33,8 +38,7 @@
         "authenticationType": "Account Key",
         "storageName": "[replace(replace(toLower(concat( variables('paramName'), variables('uniqueName') )),'-',''),'_','')]",
         "relativePath": "transformed_data/ml_data_parquet/**",
-        "datasetName": "mldataset",
-        "location": "[resourceGroup().location]"
+        "datasetName": "mldataset"
     },
     "resources": [
         {
